@@ -19,7 +19,8 @@ class Logger::SyslogFormatter < Logger::Formatter
 
   def format_datetime(time)
     if @datetime_format.nil?
-      time.strftime("%H:%M:%S")
+      milli = "%03d" % ((time.to_f - time.to_i) * 1000).round
+      "#{time.strftime("%Y-%m-%d %H:%M:%S.#{milli}")}"
     else
       time.strftime(@datetime_format)
     end
