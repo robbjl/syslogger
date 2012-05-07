@@ -3,7 +3,7 @@
 #   [Time.mSec] [SeverityLabel]: message
 
 class Logger::SyslogFormatter < Logger::Formatter
-  Format = "%5s : %5s - %s\n"
+  Format = "%s".ljust(6) + ": %5s - %s\n"
 
   attr_accessor :datetime_format
 
