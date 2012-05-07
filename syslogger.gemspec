@@ -3,6 +3,7 @@ lib = File.expand_path('../lib/', __FILE__)
 $:.unshift lib unless $:.include?(lib)
 
 require 'syslogger'
+require 'syslog_formatter'
  
 Gem::Specification.new do |s|
   s.name                      = "syslogger"

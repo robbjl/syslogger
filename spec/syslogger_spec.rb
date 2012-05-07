@@ -1,8 +1,15 @@
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
 describe "Syslogger" do
+  before(:each) do
+    @spec_formatter = Proc.new do |sev, time, _, msg|
+      msg
+    end
+  end
+
   it "should log to the default syslog facility, with the default options" do
     logger = Syslogger.new
+    logger.formatter = @spec_formatter
     Syslog.should_receive(:open).with($0, Syslog::LOG_PID | Syslog::LOG_CONS, nil).and_yield(syslog=mock("syslog", :mask= => true))
     syslog.should_receive(:log).with(Syslog::LOG_NOTICE, "Some message")
     logger.warn "Some message"
@@ -10,6 +17,7 @@ describe "Syslogger" do
 
   it "should log to the user facility, with specific options" do
     logger = Syslogger.new("my_app", Syslog::LOG_PID, Syslog::LOG_USER)
+    logger.formatter = @spec_formatter
     Syslog.should_receive(:open).with("my_app", Syslog::LOG_PID, Syslog::LOG_USER).and_yield(syslog=mock("syslog", :mask= => true))
     syslog.should_receive(:log).with(Syslog::LOG_NOTICE, "Some message")
     logger.warn "Some message"
@@ -22,6 +30,7 @@ describe "Syslogger" do
 
     it "should log #{logger_method} without raising an exception if called with a block" do
       logger = Syslogger.new
+      logger.formatter = @spec_formatter
       logger.level = Logger.const_get(logger_method.upcase)
       Syslog.stub!(:open).and_yield(syslog=mock("syslog", :mask= => true))
       severity = Syslogger::MAPPING[Logger.const_get(logger_method.upcase)]

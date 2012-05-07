@@ -7,6 +7,7 @@ class Syslogger
   VERSION = "1.3.0"
 
   attr_reader :level, :ident, :options, :facility
+  attr_accessor :formatter
 
   MAPPING = {
     Logger::DEBUG => Syslog::LOG_DEBUG,
@@ -46,6 +47,8 @@ class Syslogger
     @facility = facility
     @level = Logger::INFO
     @mutex = Mutex.new
+    @formatter = nil
+    @default_formatter = Logger::SyslogFormatter.new
   end
 
   %w{debug info warn error fatal unknown}.each do |logger_method|
@@ -53,8 +56,10 @@ class Syslogger
     #  Default params not supported in ruby 1.8.7
     define_method logger_method.to_sym do |*args, &block|
       return true if @level > Logger.const_get(logger_method.upcase)
+      severity = Logger.const_get(logger_method.upcase)
       message = args.first || block && block.call
-      add(Logger.const_get(logger_method.upcase), message)
+      message = format_message(format_severity(severity), Time.now, nil, message)
+      add(severity, message)
     end
 
     unless logger_method == 'unknown'
@@ -106,6 +111,17 @@ class Syslogger
   end
 
   protected
+
+  # Severity label for logging. (max 5 char)
+  SEV_LABEL = %w(DEBUG INFO WARN ERROR FATAL ANY)
+
+  def format_severity(severity)
+    SEV_LABEL[severity] || 'ANY'
+  end
+
+  def format_message(severity, datetime, progname, msg)
+    (@formatter || @default_formatter).call(severity, datetime, progname, msg)
+  end
 
   # Borrowed from SyslogLogger.
   def clean(message)
