@@ -3,8 +3,6 @@
 #   [Time.mSec] [SeverityLabel]: message
 
 class Logger::SyslogFormatter < Logger::Formatter
-  Format = "%s".ljust(6) + ": %5s - %s\n"
-
   attr_accessor :datetime_format
 
   def initialize
@@ -12,7 +10,7 @@ class Logger::SyslogFormatter < Logger::Formatter
   end
 
   def call(severity, time, progname, msg)
-    Format % [severity, format_datetime(time), msg2str(msg)]
+    "#{severity.ljust(6)}: #{format_datetime(time)} - #{msg}\n"
   end
 
   protected
